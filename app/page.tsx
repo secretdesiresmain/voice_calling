@@ -7,7 +7,8 @@ import { EnterIcon, LoadingIcon } from "@/lib/icons";
 import { usePlayer } from "@/lib/usePlayer";
 import { track } from "@vercel/analytics";
 import { useMicVAD, utils } from "@ricky0123/vad-react";
-import Logo from "./Logotype.svg"; // Adjust the path as necessary
+import Image from "next/image";
+import Logo from "./Logotype.svg"; // Adjusted import path
 
 type Message = {
     role: "user" | "assistant";
@@ -133,9 +134,13 @@ export default function Home() {
 
     return (
         <>
-            <div className="fixed top-0 left-0 p-4">
-                <img src={Logo} alt="Logo" className="h-12 w-12" />
-            </div>
+            <Image
+                src={Logo}
+                alt="Secret Desires"
+                width={300}
+                height={100}
+                unoptimized={true}
+            />
 
             <div className="pb-4 min-h-28" />
 
@@ -189,7 +194,7 @@ export default function Home() {
 
             <div
                 className={clsx(
-                    "absolute size-36 blur-3xl rounded-full bg-gradient-to-b from-red-200 to-red-400 dark:from-red-600 dark:to-red-800 -z-50 transition ease-in-out",
+                    "absolute size-36 blur-3xl rounded-full -z-50 transition ease-in-out",
                     {
                         "opacity-0": vad.loading || vad.errored,
                         "opacity-30":
@@ -197,7 +202,7 @@ export default function Home() {
                         "opacity-100 scale-110": vad.userSpeaking,
                     }
                 )}
-                style={{ backgroundColor: "#F7C6D9" }} // Azalea color
+                style={{ backgroundColor: "#F50057" }} // Azalea color
             />
         </>
     );
