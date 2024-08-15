@@ -55,7 +55,7 @@ export async function POST(request: Request) {
 		],
 	});
 
-	const response = completion.choices[0].message.content;
+	const message = completion.choices[0].message.content;
 	// const completion = await fetch("https://openrouter.ai/api/v1/chat/completions", {
 	// 	method: "POST",
 	// 	headers: {
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
 	// const response = await completion.json();
 	// console.log(response)
 	// const message = response.choices[0].message.content
-	console.log(message)
+	//console.log(message)
 	console.timeEnd(
 		"text completion " + request.headers.get("x-vercel-id") || "local"
 	);
