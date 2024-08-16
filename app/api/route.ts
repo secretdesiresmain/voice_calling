@@ -3,6 +3,9 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { zfd } from "zod-form-data";
 import { unstable_after as after } from "next/server";
+import os from "os";
+import path from "path";
+import fs from "fs";
 
 const groq = new Groq();
 
@@ -160,12 +163,35 @@ async function getTranscript(input: string | File) {
 	if (typeof input === "string") return input;
 
 	try {
-		const { text } = await groq.audio.transcriptions.create({
-			file: input,
-			model: "whisper-large-v3",
-		});
+		const tempDir = os.tmpdir();
+        const tempWavPath = path.join(tempDir, `temp-audio-${Date.now()}.wav`);
 
-		return text.trim() || null;
+		const arrayBuffer = await input.arrayBuffer();
+        fs.writeFileSync(tempWavPath, Buffer.from(arrayBuffer));
+		const base64Audio = Buffer.from(arrayBuffer).toString('base64');
+		console.log("Base64: ", base64Audio);
+
+		const requestBody = {
+            "input": {
+				"audio_base64": base64Audio
+			}
+        };
+		const response = await fetch('https://api.runpod.ai/v2/ngwin7b9qkt7u9/runsync', {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json',
+                'authorization': '4FRSDLS1AS6PT50MVOFW354SYOBTBGYP5R08KULP',
+				'accept': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
+		const data = await response.json();
+
+		// const { text } = await groq.audio.transcriptions.create({
+		// 	file: input,
+		// 	model: "whisper-large-v3",
+		// });
+		return data.output.transcription;
 	} catch {
 		return null; // Empty audio file
 	}
