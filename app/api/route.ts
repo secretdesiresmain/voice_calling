@@ -169,7 +169,6 @@ async function getTranscript(input: string | File) {
 		const arrayBuffer = await input.arrayBuffer();
         fs.writeFileSync(tempWavPath, Buffer.from(arrayBuffer));
 		const base64Audio = Buffer.from(arrayBuffer).toString('base64');
-		console.log("Base64: ", base64Audio);
 
 		const requestBody = {
             "input": {
