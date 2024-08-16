@@ -3,11 +3,13 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { zfd } from "zod-form-data";
 import { unstable_after as after } from "next/server";
+const { createClient } = require("@deepgram/sdk");
 import os from "os";
 import path from "path";
 import fs from "fs";
 
 const groq = new Groq();
+const deepgram = createClient("a81521d94a97b58a3efdb315355900d33b9f2b4b");
 
 const schema = zfd.formData({
 	input: z.union([zfd.text(), zfd.file()]),
@@ -28,6 +30,7 @@ export async function POST(request: Request) {
 	if (!success) return new Response("Invalid request", { status: 400 });
 
 	const transcript = await getTranscript(data.input);
+	console.log("transcript: ", transcript)
 	if (!transcript) return new Response("Invalid audio", { status: 400 });
 
 	console.timeEnd(
@@ -163,34 +166,22 @@ async function getTranscript(input: string | File) {
 	if (typeof input === "string") return input;
 
 	try {
-		const tempDir = os.tmpdir();
-        const tempWavPath = path.join(tempDir, `temp-audio-${Date.now()}.wav`);
-
-		const arrayBuffer = await input.arrayBuffer();
-        fs.writeFileSync(tempWavPath, Buffer.from(arrayBuffer));
-		const base64Audio = Buffer.from(arrayBuffer).toString('base64');
-
-		const requestBody = {
-            "input": {
-				"audio_base64": base64Audio
+		const fileContent = await input.arrayBuffer();
+		const { result, error } = await deepgram.listen.prerecorded.transcribeFile(
+			Buffer.from(fileContent),
+			{
+			  model: "nova-2",
+			  smart_format: true,
 			}
-        };
-		const response = await fetch('https://api.runpod.ai/v2/ngwin7b9qkt7u9/runsync', {
-            method: 'POST',
-            headers: {
-                'content-type': 'application/json',
-                'authorization': '4FRSDLS1AS6PT50MVOFW354SYOBTBGYP5R08KULP',
-				'accept': 'application/json'
-            },
-            body: JSON.stringify(requestBody)
-        });
-		const data = await response.json();
+		);
+		if (error) throw error;
 
 		// const { text } = await groq.audio.transcriptions.create({
 		// 	file: input,
 		// 	model: "whisper-large-v3",
 		// });
-		return data.output.transcription;
+
+		return result.results.channels[0].alternatives[0].transcript;
 	} catch {
 		return null; // Empty audio file
 	}
