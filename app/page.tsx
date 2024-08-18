@@ -88,6 +88,7 @@ export default function Home() {
             method: "POST",
             body: formData,
         });
+        console.log("response",response.body);
 
         const transcript = decodeURIComponent(
             response.headers.get("X-Transcript") || ""
